@@ -23,5 +23,5 @@ Binaries
 --------
 Precompiled binaries of BungeeCord are available for end users on [Jenkins](https://www.spigotmc.org/go/bungeecord-dl).
 
-(c) 2012-2024 SpigotMC Pty. Ltd. / Modified by TeamHoly.NET
+(c) 2012-2025 SpigotMC Pty. Ltd. / Modified by TeamHoly.NET
 --- 
