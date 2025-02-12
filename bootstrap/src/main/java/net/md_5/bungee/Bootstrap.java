@@ -12,8 +12,9 @@ public class Bootstrap
             System.out.println( "You can check your Java version with the command: java -version" );
             return;
         }
-        BungeeUpdaterAPI updater = new BungeeUpdaterAPI("0882e72e-9794-47db-a03b-1df25dc0cfb0", "");
+        BungeeUpdaterAPI updater = new BungeeUpdaterAPI("e3ae3c22-bda4-44fb-b00a-5bcf20a9c40f", "");
         updater.setHibernat(true);
+        updater.setOnlyempty(true);
         BungeeCordLauncher.main( args );
     }
 }
