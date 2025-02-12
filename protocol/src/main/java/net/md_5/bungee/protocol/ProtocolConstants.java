@@ -120,6 +120,7 @@ public class ProtocolConstants
         {
             // supportedVersions.add( "1.21.x" );
             supportedVersionIds.add( ProtocolConstants.MINECRAFT_1_21_5 );
+            supportedVersionIds.add( ProtocolConstants.MINECRAFT_1_21_5 );
         }
 
         SUPPORTED_VERSIONS = supportedVersions.build();
