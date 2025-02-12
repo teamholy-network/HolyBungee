@@ -72,7 +72,7 @@
 
     <properties>
         <build.number>unknown</build.number>
-        <lombok.version>1.18.32</lombok.version>
+        <lombok.version>1.18.36</lombok.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -153,6 +153,31 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <includeResources>false</includeResources>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.45.1</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -250,6 +275,15 @@
                 </pluginManagement>
             </build>
         </profile>
+        <profile>
+            <id>jdk-21-proc</id>
+            <activation>
+                <jdk>[21,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.proc>full</maven.compiler.proc>
+            </properties>
+        </profile>        
         <profile>
             <id>dist</id>
             <build>

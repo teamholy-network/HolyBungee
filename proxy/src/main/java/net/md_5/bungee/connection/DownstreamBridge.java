@@ -286,9 +286,12 @@ public class DownstreamBridge extends PacketHandler
                 t.setPrefix( team.getPrefix().getLeftOrCompute( ComponentSerializer::toString ) );
                 t.setSuffix( team.getSuffix().getLeftOrCompute( ComponentSerializer::toString ) );
                 t.setFriendlyFire( team.getFriendlyFire() );
-                t.setNameTagVisibility( team.getNameTagVisibility() );
-                t.setCollisionRule( team.getCollisionRule() );
+                t.setNameTagVisibility( team.getNameTagVisibility().getKey() );
                 t.setColor( team.getColor() );
+                if ( team.getCollisionRule() != null )
+                {
+                    t.setCollisionRule( team.getCollisionRule().getKey() );
+                }
             }
             if ( team.getPlayers() != null )
             {
@@ -337,7 +340,7 @@ public class DownstreamBridge extends PacketHandler
             throw CancelSendSignal.INSTANCE;
         }
 
-        if ( pluginMessage.getTag().equals( "BungeeCord" ) )
+        if ( pluginMessage.getTag().equals( PluginMessage.BUNGEE_CHANNEL_LEGACY ) )
         {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             String subChannel = in.readUTF();
@@ -361,7 +364,7 @@ public class DownstreamBridge extends PacketHandler
                         out.write( data );
                         byte[] payload = out.toByteArray();
 
-                        target.getServer().sendData( "BungeeCord", payload );
+                        target.getServer().sendData( PluginMessage.BUNGEE_CHANNEL_LEGACY, payload );
                     }
 
                     // Null out stream, important as we don't want to send to ourselves
@@ -393,7 +396,7 @@ public class DownstreamBridge extends PacketHandler
                             {
                                 if ( server != this.server.getInfo() )
                                 {
-                                    server.sendData( "BungeeCord", payload );
+                                    server.sendData( PluginMessage.BUNGEE_CHANNEL_LEGACY, payload );
                                 }
                             }
                             break;
@@ -402,7 +405,7 @@ public class DownstreamBridge extends PacketHandler
                             {
                                 if ( server != this.server.getInfo() )
                                 {
-                                    server.sendData( "BungeeCord", payload, false );
+                                    server.sendData( PluginMessage.BUNGEE_CHANNEL_LEGACY, payload, false );
                                 }
                             }
                             break;
@@ -410,7 +413,7 @@ public class DownstreamBridge extends PacketHandler
                             ServerInfo server = bungee.getServerInfo( target );
                             if ( server != null )
                             {
-                                server.sendData( "BungeeCord", payload );
+                                server.sendData( PluginMessage.BUNGEE_CHANNEL_LEGACY, payload );
                             }
                             break;
                     }
@@ -638,7 +641,7 @@ public class DownstreamBridge extends PacketHandler
                 byte[] b = out.toByteArray();
                 if ( b.length != 0 )
                 {
-                    server.sendData( "BungeeCord", b );
+                    server.sendData( PluginMessage.BUNGEE_CHANNEL_LEGACY, b );
                 }
             }
 
