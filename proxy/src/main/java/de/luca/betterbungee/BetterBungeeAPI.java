@@ -21,7 +21,7 @@ public class BetterBungeeAPI {
     private static final String BetterBungeeVersion = "1.0";
 
     @Getter
-    private static final String bungeecordversion = "d99570214aca18a7eb0f6682a36d8992da65b57a";
+    private static final String bungeecordversion = "4dad940a2fee447f60b03c01d673d966b7908247";
 
 	@Getter
 	private static final SessionCache sessionCache = new SessionCache( TimeUnit.MINUTES.toMillis( BetterBungeeConfig.getConfigJson().getLoginCacheSettings().getCacheTimeInMinutes() ) );
