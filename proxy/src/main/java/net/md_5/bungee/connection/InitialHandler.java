@@ -2,6 +2,7 @@ package net.md_5.bungee.connection;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import io.netty.channel.EventLoop;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -225,11 +226,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     @Override
                     public void done(ProxyPingEvent result, Throwable error)
                     {
-                        if ( ch.isClosing() )
-                        {
-                            return;
-                        }
-
                         ServerPing legacy = result.getResponse();
                         String kickMessage;
 
@@ -253,7 +249,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     }
                 };
 
-                bungee.getPluginManager().callEvent( new ProxyPingEvent( InitialHandler.this, result, callback ) );
+                bungee.getPluginManager().callEvent( new ProxyPingEvent( InitialHandler.this, result, eventLoopCallback( callback ) ) );
             }
         };
 
@@ -315,7 +311,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     }
                 };
 
-                bungee.getPluginManager().callEvent( new ProxyPingEvent( InitialHandler.this, result, callback ) );
+                bungee.getPluginManager().callEvent( new ProxyPingEvent( InitialHandler.this, result, eventLoopCallback( callback ) ) );
             }
         };
 
@@ -491,10 +487,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     disconnect( ( reason != null ) ? reason : TextComponent.fromLegacy( bungee.getTranslation( "kick_message" ) ) );
                     return;
                 }
-                if ( ch.isClosing() )
-                {
-                    return;
-                }
                 if ( onlineMode )
                 {
                     thisState = State.ENCRYPT;
@@ -508,7 +500,7 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         };
 
         // fire pre login event
-        bungee.getPluginManager().callEvent( new PreLoginEvent( InitialHandler.this, callback ) );
+        bungee.getPluginManager().callEvent( new PreLoginEvent( InitialHandler.this, eventLoopCallback( callback ) ) );
     }
 
     @Override
@@ -655,35 +647,21 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                     disconnect( ( reason != null ) ? reason : TextComponent.fromLegacy( bungee.getTranslation( "kick_message" ) ) );
                     return;
                 }
-                if ( ch.isClosing() )
+
+                userCon = new UserConnection( bungee, ch, getName(), InitialHandler.this );
+                userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
+
+                if ( getVersion() < ProtocolConstants.MINECRAFT_1_20_2 )
                 {
-                    return;
+                    unsafe.sendPacket( new LoginSuccess( getRewriteId(), getName(), ( loginProfile == null ) ? null : loginProfile.getProperties() ) );
+                    ch.setProtocol( Protocol.GAME );
                 }
-
-                ch.getHandle().eventLoop().execute( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        if ( !ch.isClosing() )
-                        {
-                            userCon = new UserConnection( bungee, ch, getName(), InitialHandler.this );
-                            userCon.setCompressionThreshold( BungeeCord.getInstance().config.getCompressionThreshold() );
-
-                            if ( getVersion() < ProtocolConstants.MINECRAFT_1_20_2 )
-                            {
-                                unsafe.sendPacket( new LoginSuccess( getRewriteId(), getName(), ( loginProfile == null ) ? null : loginProfile.getProperties() ) );
-                                ch.setProtocol( Protocol.GAME );
-                            }
-                            finish2();
-                        }
-                    }
-                } );
+                finish2();
             }
         };
 
         // fire login event
-        bungee.getPluginManager().callEvent( new LoginEvent( InitialHandler.this, complete ) );
+        bungee.getPluginManager().callEvent( new LoginEvent( InitialHandler.this, eventLoopCallback( complete ) ) );
     }
 
     private void finish2()
@@ -714,18 +692,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
             @Override
             public void done(PostLoginEvent result, Throwable error)
             {
-                // #3612: Don't progress further if disconnected during event
-                if ( ch.isClosing() )
-                {
-                    return;
-                }
-
                 userCon.connect( result.getTarget(), null, true, ServerConnectEvent.Reason.JOIN_PROXY );
             }
         };
 
         // fire post-login event
-        bungee.getPluginManager().callEvent( new PostLoginEvent( userCon, initialServer, complete ) );
+        bungee.getPluginManager().callEvent( new PostLoginEvent( userCon, initialServer, eventLoopCallback( complete ) ) );
     }
 
     @Override
@@ -953,5 +925,33 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         }
         unsafe.sendPacket( new LoginPayloadRequest( id, channel, data ) );
         return future;
+    }
+
+    // this method is used for event execution
+    // if this connection is disconnected during an event-call, the original callback is not called
+    // if the event was executed async, we execute the callback on the eventloop again
+    // otherwise netty will schedule any pipeline related call by itself, this decreases performance
+    private <T> Callback<T> eventLoopCallback(Callback<T> callback)
+    {
+        return (result, error) ->
+        {
+            EventLoop eventLoop = ch.getHandle().eventLoop();
+            if ( eventLoop.inEventLoop() )
+            {
+                if ( !ch.isClosing() )
+                {
+                    callback.done( result, error );
+                }
+                return;
+            }
+
+            eventLoop.execute( () ->
+            {
+                if ( !ch.isClosing() )
+                {
+                    callback.done( result, error );
+                }
+            } );
+        };
     }
 }
