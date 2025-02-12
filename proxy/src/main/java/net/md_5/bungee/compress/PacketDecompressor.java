@@ -14,7 +14,6 @@ public class PacketDecompressor extends MessageToMessageDecoder<ByteBuf>
 {
 
     private static final int MAX_DECOMPRESSED_LEN = 1 << 23;
-    private static final int MAX_DECOMPRESSED_LEN = 1 << 23;
     private final BungeeZlib zlib = CompressFactory.zlib.newInstance();
 
     @Override
@@ -38,10 +37,6 @@ public class PacketDecompressor extends MessageToMessageDecoder<ByteBuf>
             out.add( in.retain() );
         } else
         {
-            if ( size > MAX_DECOMPRESSED_LEN )
-            {
-                throw new OverflowPacketException( "Packet may not be larger than " + MAX_DECOMPRESSED_LEN + " bytes" );
-            }
             if ( size > MAX_DECOMPRESSED_LEN )
             {
                 throw new OverflowPacketException( "Packet may not be larger than " + MAX_DECOMPRESSED_LEN + " bytes" );
