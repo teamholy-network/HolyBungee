@@ -15,7 +15,10 @@ public class BetterBungeeAPI {
     private static final IPChecker ipchecker = new IPChecker();
 
     @Getter
-    private static final String prefix = "§6BetterBungee";
+    private static final String prefix = "§f§lHoly§6§lBungee";
+
+    @Getter
+    private static final String HolyBungeeVersion = "1.0";
 
     @Getter
     private static final String BetterBungeeVersion = "1.0";
@@ -42,5 +45,4 @@ public class BetterBungeeAPI {
         final String addr = remote != null ? remote.toString() : "";
         return addr.split("/")[1].split(":")[0];
     }
-    
 }
